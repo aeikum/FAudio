@@ -1039,3 +1039,5 @@ void DspReverb_Destroy(DspReverb *reverb)
 
 	FAudio_free(reverb);
 }
+
+/* vim: set noexpandtab shiftwidth=8 tabstop=8: */

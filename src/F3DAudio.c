@@ -1502,3 +1502,5 @@ void F3DAudioCalculate(
 		FAudio_assert(0 && "REVERB not implemented!");
 	}
 }
+
+/* vim: set noexpandtab shiftwidth=8 tabstop=8: */

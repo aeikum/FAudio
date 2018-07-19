@@ -646,3 +646,5 @@ uint8_t* FAudio_memptr(FAudioIOStream *io, size_t offset)
 void FAudio_close(FAudioIOStream *io)
 {
 }
+
+/* vim: set noexpandtab shiftwidth=8 tabstop=8: */

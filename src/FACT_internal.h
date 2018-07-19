@@ -564,3 +564,5 @@ uint32_t FACT_INTERNAL_ParseWaveBank(
 	uint16_t isStreaming,
 	FACTWaveBank **ppWaveBank
 );
+
+/* vim: set noexpandtab shiftwidth=8 tabstop=8: */

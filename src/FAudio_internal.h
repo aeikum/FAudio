@@ -573,3 +573,4 @@ uint32_t FAudio_timems(void);
 	(float) (fxd >> FIXED_PRECISION) + /* Integer part */ \
 	((fxd & FIXED_FRACTION_MASK) * (1.0f / FIXED_ONE)) /* Fraction part */ \
 )
+/* vim: set noexpandtab shiftwidth=8 tabstop=8: */

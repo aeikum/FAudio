@@ -1221,3 +1221,4 @@ void FAudio_INTERNAL_DecodeStereoMSADPCM(
 		midOffset = 0;
 	}
 }
+/* vim: set noexpandtab shiftwidth=8 tabstop=8: */

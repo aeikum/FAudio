@@ -42,3 +42,5 @@ void DspReverb_Reset(DspReverb *reverb);
 void DspReverb_Destroy(DspReverb *reverb);
 
 #endif // FAUDIOFX_DSP_h
+
+/* vim: set noexpandtab shiftwidth=8 tabstop=8: */

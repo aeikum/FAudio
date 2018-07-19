@@ -203,3 +203,5 @@ FAPOAPI void FAPOBase_EndProcess(FAPOBase *fapo);
 #endif /* __cplusplus */
 
 #endif /* FAPOBASE_H */
+
+/* vim: set noexpandtab shiftwidth=8 tabstop=8: */
