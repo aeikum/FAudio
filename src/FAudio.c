@@ -1803,3 +1803,5 @@ FAUDIOAPI uint32_t FAudioMasteringVoice_GetChannelMask(
 	*pChannelMask = voice->audio->mixFormat->dwChannelMask;
 	return 0;
 }
+
+/* vim: set noexpandtab shiftwidth=8 tabstop=8: */
