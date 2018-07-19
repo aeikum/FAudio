@@ -26,6 +26,8 @@
 
 #include "FAudio_internal.h"
 
+#include <stdio.h>
+
 void LinkedList_AddEntry(
 	LinkedList **start,
 	void* toAdd,
