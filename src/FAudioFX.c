@@ -305,11 +305,13 @@ uint32_t FAudioFXReverb_LockForProcess(
 		return FAPO_E_FORMAT_UNSUPPORTED;
 	}
 
+#if 0
 	if (pInputLockedParameters->pFormat->nSamplesPerSec < FAUDIOFX_REVERB_MIN_FRAMERATE ||
 		pInputLockedParameters->pFormat->nSamplesPerSec > FAUDIOFX_REVERB_MAX_FRAMERATE)
 	{
 		return FAPO_E_FORMAT_UNSUPPORTED;
 	}
+#endif
 
 	if (!((pInputLockedParameters->pFormat->nChannels == 1 &&
 			(pOutputLockedParameters->pFormat->nChannels == 1 ||
