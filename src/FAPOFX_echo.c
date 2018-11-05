@@ -31,6 +31,50 @@
 
 const FAudioGUID FAPOFX_CLSID_FXEcho =
 {
+	0x5039D740,
+	0xF736,
+	0x449A,
+	{
+		0x84,
+		0xD3,
+		0xA5,
+		0x62,
+		0x02,
+		0x55,
+		0x7B,
+		0x87
+	}
+};
+
+static FAPORegistrationProperties FXEchoProperties =
+{
+	/* .clsid = */ FAPOFX_CLSID_FXEcho,
+	/* .FriendlyName = */
+	{
+		'F', 'X', 'E', 'c', 'h', 'o', '\0'
+	},
+	/*.CopyrightInfo = */
+	{
+		'C', 'o', 'p', 'y', 'r', 'i', 'g', 'h', 't', ' ', '(', 'c', ')',
+		'E', 't', 'h', 'a', 'n', ' ', 'L', 'e', 'e', '\0'
+	},
+	/*.MajorVersion = */ 0,
+	/*.MinorVersion = */ 0,
+	/*.Flags = */(
+		FAPO_FLAG_FRAMERATE_MUST_MATCH |
+		FAPO_FLAG_BITSPERSAMPLE_MUST_MATCH |
+		FAPO_FLAG_BUFFERCOUNT_MUST_MATCH |
+		FAPO_FLAG_INPLACE_SUPPORTED |
+		FAPO_FLAG_INPLACE_REQUIRED
+	),
+	/*.MinInputBufferCount = */ 1,
+	/*.MaxInputBufferCount = */  1,
+	/*.MinOutputBufferCount = */ 1,
+	/*.MaxOutputBufferCount =*/ 1
+};
+
+const FAudioGUID FAPOFX_CLSID_FXEcho_LEGACY =
+{
 	0xA90BC001,
 	0xE897,
 	0xE897,
@@ -46,9 +90,9 @@ const FAudioGUID FAPOFX_CLSID_FXEcho =
 	}
 };
 
-static FAPORegistrationProperties FXEchoProperties =
+static FAPORegistrationProperties FXEchoProperties_LEGACY =
 {
-	/* .clsid = */ {0},
+	/* .clsid = */ FAPOFX_CLSID_FXEcho_LEGACY,
 	/* .FriendlyName = */
 	{
 		'F', 'X', 'E', 'c', 'h', 'o', '\0'
@@ -128,7 +172,8 @@ uint32_t FAPOFXCreateEcho(
 	uint32_t InitDataByteSize,
 	FAudioMallocFunc customMalloc,
 	FAudioFreeFunc customFree,
-	FAudioReallocFunc customRealloc
+	FAudioReallocFunc customRealloc,
+	uint8_t legacy
 ) {
 	const FAPOFXEchoParameters fxdefault =
 	{
@@ -167,14 +212,9 @@ uint32_t FAPOFXCreateEcho(
 	}
 
 	/* Initialize... */
-	FAudio_memcpy(
-		&FXEchoProperties.clsid,
-		&FAPOFX_CLSID_FXEcho,
-		sizeof(FAudioGUID)
-	);
 	CreateFAPOBaseWithCustomAllocatorEXT(
 		&result->base,
-		&FXEchoProperties,
+		legacy ? &FXEchoProperties_LEGACY : &FXEchoProperties,
 		params,
 		sizeof(FAPOFXEchoParameters),
 		0,
