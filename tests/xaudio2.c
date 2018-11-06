@@ -38,20 +38,51 @@
 #include <stdint.h>
 #include <stdio.h>
 
-static void ok(uint8_t success, const char *fmt, ...)
+static int failure_count = 0;
+static int success_count = 0;
+
+static void ok(BOOL success, const char *fmt, ...)
 {
     if(!success){
         va_list va;
         va_start(va, fmt);
-        vfprintf(stderr, fmt, va);
+        vfprintf(stdout, fmt, va);
         va_end(va);
+        ++failure_count;
+    }else
+        ++success_count;
+}
+
+static UINT32 test_DeviceDetails(IXAudio27 *xa)
+{
+    HRESULT hr;
+    XAUDIO2_DEVICE_DETAILS dd;
+    UINT32 count, i;
+
+    hr = IXAudio27_GetDeviceCount(xa, &count);
+    ok(hr == S_OK, "GetDeviceCount failed: %08x\n", hr);
+
+    if(count == 0)
+        return 0;
+
+    for(i = 0; i < count; ++i){
+        hr = IXAudio27_GetDeviceDetails(xa, i, &dd);
+        ok(hr == S_OK, "GetDeviceDetails failed: %08x\n", hr);
+
+        if(i == 0)
+            ok(dd.Role == GlobalDefaultDevice, "Got wrong role for index 0: 0x%x\n", dd.Role);
+        else
+            ok(dd.Role == NotDefaultDevice, "Got wrong role for index %u: 0x%x\n", i, dd.Role);
     }
+
+    return count;
 }
 
 int main(int argc, char **argv)
 {
     HRESULT hr;
     IXAudio27 *xa27 = NULL;
+    UINT32 has_devices;
 
 #ifdef _WIN32
     CoInitialize(NULL);
@@ -67,20 +98,23 @@ int main(int argc, char **argv)
     hr = IXAudio27_Initialize(xa27, 0, XAUDIO2_ANY_PROCESSOR);
     ok(hr == S_OK, "Initialize failed: %08x\n", hr);
 
+    has_devices = test_DeviceDetails(xa27);
 #if 0
-        has_devices = test_DeviceDetails(xa27);
-        if(has_devices){
-            test_simple_streaming((IXAudio2*)xa27);
-            test_buffer_callbacks((IXAudio2*)xa27);
-            test_looping((IXAudio2*)xa27);
-            test_submix((IXAudio2*)xa27);
-            test_flush((IXAudio2*)xa27);
-            test_setchannelvolumes((IXAudio2*)xa27);
-        }else
-            skip("No audio devices available\n");
+    if(has_devices){
+        test_simple_streaming((IXAudio2*)xa27);
+        test_buffer_callbacks((IXAudio2*)xa27);
+        test_looping((IXAudio2*)xa27);
+        test_submix((IXAudio2*)xa27);
+        test_flush((IXAudio2*)xa27);
+        test_setchannelvolumes((IXAudio2*)xa27);
+    }else
+        fprintf(stdout, "No audio devices available\n");
 #endif
 
     IXAudio27_Release(xa27);
+
+    fprintf(stdout, "Finished with %u successful tests and %u failed tests.\n",
+            success_count, failure_count);
 
     return 0;
 }
@@ -985,31 +1019,6 @@ static void test_flush(IXAudio2 *xa)
     IXAudio2MasteringVoice_DestroyVoice(master);
 
     HeapFree(GetProcessHeap(), 0, (void*)buf.pAudioData);
-}
-
-static UINT32 test_DeviceDetails(IXAudio27 *xa)
-{
-    HRESULT hr;
-    XAUDIO2_DEVICE_DETAILS dd;
-    UINT32 count, i;
-
-    hr = IXAudio27_GetDeviceCount(xa, &count);
-    ok(hr == S_OK, "GetDeviceCount failed: %08x\n", hr);
-
-    if(count == 0)
-        return 0;
-
-    for(i = 0; i < count; ++i){
-        hr = IXAudio27_GetDeviceDetails(xa, i, &dd);
-        ok(hr == S_OK, "GetDeviceDetails failed: %08x\n", hr);
-
-        if(i == 0)
-            ok(dd.Role == GlobalDefaultDevice, "Got wrong role for index 0: 0x%x\n", dd.Role);
-        else
-            ok(dd.Role == NotDefaultDevice, "Got wrong role for index %u: 0x%x\n", i, dd.Role);
-    }
-
-    return count;
 }
 
 static void test_xapo_creation_legacy(const char *module, unsigned int version)
