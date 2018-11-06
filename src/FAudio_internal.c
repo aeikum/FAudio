@@ -213,7 +213,6 @@ static void FAudio_INTERNAL_DecodeBuffers(
 				{
 					buffer = &voice->src.bufferList->buffer;
 					voice->src.curBufferOffset = buffer->PlayBegin;
-					voice->src.newBuffer = 1;
 				}
 				else
 				{
@@ -255,7 +254,14 @@ static void FAudio_INTERNAL_DecodeBuffers(
 					{
 						buffer = &voice->src.bufferList->buffer;
 						voice->src.curBufferOffset = buffer->PlayBegin;
-						voice->src.newBuffer = 1;
+					}
+
+					if (buffer != NULL && voice->src.callback->OnBufferStart != NULL)
+					{
+						voice->src.callback->OnBufferStart(
+							voice->src.callback,
+							buffer->pContext
+						);
 					}
 				}
 
