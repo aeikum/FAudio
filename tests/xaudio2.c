@@ -28,6 +28,9 @@
 #define COBJMACROS
 #include "initguid.h"
 #include "xaudio2.h"
+#include "xaudio2fx.h"
+#include "xapo.h"
+#include "xapofx.h"
 #else
 /* native build against FAudio */
 #include "FAudio.h"
@@ -37,6 +40,12 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
+
+#define XA2CALL_0(method) if(xaudio27) hr = IXAudio27_##method((IXAudio27*)xa); else hr = IXAudio2_##method(xa);
+#define XA2CALL_0V(method) if(xaudio27) IXAudio27_##method((IXAudio27*)xa); else IXAudio2_##method(xa);
+#define XA2CALL_V(method, ...) if(xaudio27) IXAudio27_##method((IXAudio27*)xa, __VA_ARGS__); else IXAudio2_##method(xa, __VA_ARGS__);
+#define XA2CALL(method, ...) if(xaudio27) hr = IXAudio27_##method((IXAudio27*)xa, __VA_ARGS__); else hr = IXAudio2_##method(xa, __VA_ARGS__);
 
 static int failure_count = 0;
 static int success_count = 0;
@@ -53,103 +62,18 @@ static void ok(BOOL success, const char *fmt, ...)
         ++success_count;
 }
 
-static UINT32 test_DeviceDetails(IXAudio27 *xa)
-{
-    HRESULT hr;
-    XAUDIO2_DEVICE_DETAILS dd;
-    UINT32 count, i;
-
-    hr = IXAudio27_GetDeviceCount(xa, &count);
-    ok(hr == S_OK, "GetDeviceCount failed: %08x\n", hr);
-
-    if(count == 0)
-        return 0;
-
-    for(i = 0; i < count; ++i){
-        hr = IXAudio27_GetDeviceDetails(xa, i, &dd);
-        ok(hr == S_OK, "GetDeviceDetails failed: %08x\n", hr);
-
-        if(i == 0)
-            ok(dd.Role == GlobalDefaultDevice, "Got wrong role for index 0: 0x%x\n", dd.Role);
-        else
-            ok(dd.Role == NotDefaultDevice, "Got wrong role for index %u: 0x%x\n", i, dd.Role);
-    }
-
-    return count;
-}
-
-int main(int argc, char **argv)
-{
-    HRESULT hr;
-    IXAudio27 *xa27 = NULL;
-    UINT32 has_devices;
-
-#ifdef _WIN32
-    CoInitialize(NULL);
-
-    hr = CoCreateInstance(&CLSID_XAudio27, NULL, CLSCTX_INPROC_SERVER,
-            &IID_IXAudio27, (void**)&xa27);
-    ok(hr == S_OK, "Failed to create XAudio27 object\n");
-#else
-    hr = FAudioCOMConstructEXT(&xa27, 7);
-    ok(hr == S_OK, "Failed to create FAudio object\n");
-#endif
-
-    hr = IXAudio27_Initialize(xa27, 0, XAUDIO2_ANY_PROCESSOR);
-    ok(hr == S_OK, "Initialize failed: %08x\n", hr);
-
-    has_devices = test_DeviceDetails(xa27);
-#if 0
-    if(has_devices){
-        test_simple_streaming((IXAudio2*)xa27);
-        test_buffer_callbacks((IXAudio2*)xa27);
-        test_looping((IXAudio2*)xa27);
-        test_submix((IXAudio2*)xa27);
-        test_flush((IXAudio2*)xa27);
-        test_setchannelvolumes((IXAudio2*)xa27);
-    }else
-        fprintf(stdout, "No audio devices available\n");
-#endif
-
-    IXAudio27_Release(xa27);
-
-    fprintf(stdout, "Finished with %u successful tests and %u failed tests.\n",
-            success_count, failure_count);
-
-    return 0;
-}
-
-#if 0
-#include <windows.h>
-#include <math.h>
-
-#define COBJMACROS
-#include "wine/test.h"
-#include "initguid.h"
-#include "xaudio2.h"
-#include "xaudio2fx.h"
-#include "xapo.h"
-#include "xapofx.h"
-#include "mmsystem.h"
-
-static BOOL xaudio27;
-
-static HRESULT (WINAPI *pXAudio2Create)(IXAudio2 **, UINT32, XAUDIO2_PROCESSOR) = NULL;
-static HRESULT (WINAPI *pCreateAudioVolumeMeter)(IUnknown**) = NULL;
-
-#define XA2CALL_0(method) if(xaudio27) hr = IXAudio27_##method((IXAudio27*)xa); else hr = IXAudio2_##method(xa);
-#define XA2CALL_0V(method) if(xaudio27) IXAudio27_##method((IXAudio27*)xa); else IXAudio2_##method(xa);
-#define XA2CALL_V(method, ...) if(xaudio27) IXAudio27_##method((IXAudio27*)xa, __VA_ARGS__); else IXAudio2_##method(xa, __VA_ARGS__);
-#define XA2CALL(method, ...) if(xaudio27) hr = IXAudio27_##method((IXAudio27*)xa, __VA_ARGS__); else hr = IXAudio2_##method(xa, __VA_ARGS__);
+static int xaudio27;
 
 static void fill_buf(float *buf, WAVEFORMATEX *fmt, DWORD hz, DWORD len_frames)
 {
+#if 0
     if(winetest_interactive){
         DWORD offs, c;
         for(offs = 0; offs < len_frames; ++offs)
             for(c = 0; c < fmt->nChannels; ++c)
                 buf[offs * fmt->nChannels + c] = sinf(offs * hz * 2 * M_PI / fmt->nSamplesPerSec);
     }else
+#endif
         memset(buf, 0, sizeof(float) * len_frames * fmt->nChannels);
 }
 
@@ -178,13 +102,21 @@ static void WINAPI ECB_OnCriticalError(IXAudio2EngineCallback *This, HRESULT Err
     ok(0, "Unexpected OnCriticalError\n");
 }
 
-static const IXAudio2EngineCallbackVtbl ecb_vtbl = {
+#if _WIN32
+static IXAudio2EngineCallbackVtbl ecb_vtbl = {
     ECB_OnProcessingPassStart,
     ECB_OnProcessingPassEnd,
     ECB_OnCriticalError
 };
 
 static IXAudio2EngineCallback ecb = { &ecb_vtbl };
+#else
+static FAudioEngineCallback ecb = {
+    ECB_OnCriticalError,
+    ECB_OnProcessingPassEnd,
+    ECB_OnProcessingPassStart
+};
+#endif
 
 static IXAudio2VoiceCallback vcb1;
 static IXAudio2VoiceCallback vcb2;
@@ -255,7 +187,8 @@ static void WINAPI VCB_OnVoiceError(IXAudio2VoiceCallback *This,
     ok(0, "Unexpected OnVoiceError\n");
 }
 
-static const IXAudio2VoiceCallbackVtbl vcb_vtbl = {
+#ifdef _WIN32
+static IXAudio2VoiceCallbackVtbl vcb_vtbl = {
     VCB_OnVoiceProcessingPassStart,
     VCB_OnVoiceProcessingPassEnd,
     VCB_OnStreamEnd,
@@ -267,13 +200,38 @@ static const IXAudio2VoiceCallbackVtbl vcb_vtbl = {
 
 static IXAudio2VoiceCallback vcb1 = { &vcb_vtbl };
 static IXAudio2VoiceCallback vcb2 = { &vcb_vtbl };
+#else
+static IXAudio2VoiceCallback vcb1 = {
+    VCB_OnBufferEnd,
+    VCB_OnBufferStart,
+    VCB_OnLoopEnd,
+    VCB_OnStreamEnd,
+    VCB_OnVoiceError,
+    VCB_OnVoiceProcessingPassEnd,
+    VCB_OnVoiceProcessingPassStart
+};
+
+static IXAudio2VoiceCallback vcb2 = {
+    VCB_OnBufferEnd,
+    VCB_OnBufferStart,
+    VCB_OnLoopEnd,
+    VCB_OnStreamEnd,
+    VCB_OnVoiceError,
+    VCB_OnVoiceProcessingPassEnd,
+    VCB_OnVoiceProcessingPassStart
+};
+#endif
 
 static void test_simple_streaming(IXAudio2 *xa)
 {
     HRESULT hr;
     IXAudio2MasteringVoice *master;
     IXAudio2SourceVoice *src, *src2;
+#ifdef _WIN32
     IUnknown *vumeter;
+#else
+    FAPO *vumeter;
+#endif
     WAVEFORMATEX fmt;
     XAUDIO2_BUFFER buf, buf2;
     XAUDIO2_VOICE_STATE state;
@@ -299,7 +257,12 @@ static void test_simple_streaming(IXAudio2 *xa)
     if(xaudio27)
         hr = IXAudio27_CreateMasteringVoice((IXAudio27*)xa, &master, 2, 44100, 0, 0, NULL);
     else
-        hr = IXAudio2_CreateMasteringVoice(xa, &master, 2, 44100, 0, NULL, NULL, AudioCategory_GameEffects);
+        hr = IXAudio2_CreateMasteringVoice(xa, &master, 2, 44100, 0,
+#ifdef _WIN32
+                NULL /*WCHAR *deviceID*/, NULL, AudioCategory_GameEffects);
+#else
+                0 /*int deviceIndex*/, NULL);
+#endif
     ok(hr == S_OK, "CreateMasteringVoice failed: %08x\n", hr);
 
     if(!xaudio27){
@@ -381,17 +344,16 @@ static void test_simple_streaming(IXAudio2 *xa)
 
     /* hook up volume meter */
     if(xaudio27){
-        IXAPO *xapo;
-
+#ifdef _WIN32
         hr = CoCreateInstance(&CLSID_AudioVolumeMeter27, NULL,
                 CLSCTX_INPROC_SERVER, &IID_IUnknown, (void**)&vumeter);
         ok(hr == S_OK, "CoCreateInstance(AudioVolumeMeter) failed: %08x\n", hr);
-
-        hr = IUnknown_QueryInterface(vumeter, &IID_IXAPO27, (void**)&xapo);
-        ok(hr == S_OK, "Couldn't get IXAPO27 interface: %08x\n", hr);
-        if(SUCCEEDED(hr))
-            IXAPO_Release(xapo);
+#else
+        hr = FAudioCreateVolumeMeter(&vumeter, 0);
+        ok(hr == S_OK, "FAudioCreateVolumeMeter failed: %08x\n", hr);
+#endif
     }else{
+#if 0
         IXAPO *xapo;
 
         hr = pCreateAudioVolumeMeter(&vumeter);
@@ -401,6 +363,7 @@ static void test_simple_streaming(IXAudio2 *xa)
         ok(hr == S_OK, "Couldn't get IXAPO interface: %08x\n", hr);
         if(SUCCEEDED(hr))
             IXAPO_Release(xapo);
+#endif
     }
 
     effect.InitialState = TRUE;
@@ -441,6 +404,91 @@ static void test_simple_streaming(IXAudio2 *xa)
 
     XA2CALL_V(UnregisterForCallbacks, &ecb);
 }
+
+static UINT32 test_DeviceDetails(IXAudio27 *xa)
+{
+    HRESULT hr;
+    XAUDIO2_DEVICE_DETAILS dd;
+    UINT32 count, i;
+
+    hr = IXAudio27_GetDeviceCount(xa, &count);
+    ok(hr == S_OK, "GetDeviceCount failed: %08x\n", hr);
+
+    if(count == 0)
+        return 0;
+
+    for(i = 0; i < count; ++i){
+        hr = IXAudio27_GetDeviceDetails(xa, i, &dd);
+        ok(hr == S_OK, "GetDeviceDetails failed: %08x\n", hr);
+
+        if(i == 0)
+            ok(dd.Role == GlobalDefaultDevice, "Got wrong role for index 0: 0x%x\n", dd.Role);
+        else
+            ok(dd.Role == NotDefaultDevice, "Got wrong role for index %u: 0x%x\n", i, dd.Role);
+    }
+
+    return count;
+}
+
+int main(int argc, char **argv)
+{
+    HRESULT hr;
+    IXAudio27 *xa27 = NULL;
+    UINT32 has_devices;
+
+#ifdef _WIN32
+    CoInitialize(NULL);
+
+    hr = CoCreateInstance(&CLSID_XAudio27, NULL, CLSCTX_INPROC_SERVER,
+            &IID_IXAudio27, (void**)&xa27);
+    ok(hr == S_OK, "Failed to create XAudio27 object\n");
+#else
+    hr = FAudioCOMConstructEXT(&xa27, 7);
+    ok(hr == S_OK, "Failed to create FAudio object\n");
+#endif
+
+    hr = IXAudio27_Initialize(xa27, 0, XAUDIO2_ANY_PROCESSOR);
+    ok(hr == S_OK, "Initialize failed: %08x\n", hr);
+
+    has_devices = test_DeviceDetails(xa27);
+    if(has_devices){
+        xaudio27 = TRUE;
+        test_simple_streaming((IXAudio2*)xa27);
+#if 0
+        test_buffer_callbacks((IXAudio2*)xa27);
+        test_looping((IXAudio2*)xa27);
+        test_submix((IXAudio2*)xa27);
+        test_flush((IXAudio2*)xa27);
+        test_setchannelvolumes((IXAudio2*)xa27);
+#endif
+    }else
+        fprintf(stdout, "No audio devices available\n");
+
+    IXAudio27_Release(xa27);
+
+    fprintf(stdout, "Finished with %u successful tests and %u failed tests.\n",
+            success_count, failure_count);
+
+    return 0;
+}
+
+#if 0
+#include <windows.h>
+#include <math.h>
+
+#define COBJMACROS
+#include "wine/test.h"
+#include "initguid.h"
+#include "xaudio2.h"
+#include "xaudio2fx.h"
+#include "xapo.h"
+#include "xapofx.h"
+#include "mmsystem.h"
+
+static BOOL xaudio27;
+
+static HRESULT (WINAPI *pXAudio2Create)(IXAudio2 **, UINT32, XAUDIO2_PROCESSOR) = NULL;
+static HRESULT (WINAPI *pCreateAudioVolumeMeter)(IUnknown**) = NULL;
 
 static void WINAPI vcb_buf_OnVoiceProcessingPassStart(IXAudio2VoiceCallback *This,
         UINT32 BytesRequired)

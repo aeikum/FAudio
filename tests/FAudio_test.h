@@ -1,10 +1,29 @@
 /* map xaudio2 types to faudio types */
 typedef uint32_t HRESULT;
 typedef uint32_t UINT32;
+typedef uint32_t DWORD;
 typedef uint8_t BOOL;
 
 typedef FAudio IXAudio27;
+typedef FAudio IXAudio2;
+typedef FAudioMasteringVoice IXAudio2MasteringVoice;
+typedef FAudioSourceVoice IXAudio2SourceVoice;
+typedef FAudioEngineCallback IXAudio2EngineCallback;
+typedef FAudioVoiceCallback IXAudio2VoiceCallback;
+
+typedef FAPO IXAPO;
+
+typedef FAudioBuffer XAUDIO2_BUFFER;
 typedef FAudioDeviceDetails XAUDIO2_DEVICE_DETAILS;
+typedef FAudioEffectChain XAUDIO2_EFFECT_CHAIN;
+typedef FAudioEffectDescriptor XAUDIO2_EFFECT_DESCRIPTOR;
+typedef FAudioVoiceState XAUDIO2_VOICE_STATE;
+typedef FAudioWaveFormatEx WAVEFORMATEX;
+
+#define WINAPI FAUDIOCALL
+
+#define TRUE 1
+#define FALSE 0
 
 #define S_OK 0
 
@@ -12,6 +31,21 @@ typedef FAudioDeviceDetails XAUDIO2_DEVICE_DETAILS;
 #define IXAudio27_Release FAudio_Release
 #define IXAudio27_GetDeviceCount FAudio_GetDeviceCount
 #define IXAudio27_GetDeviceDetails FAudio_GetDeviceDetails
+#define IXAudio27_StopEngine FAudio_StopEngine
+#define IXAudio27_RegisterForCallbacks FAudio_RegisterForCallbacks
+#define IXAudio27_CreateMasteringVoice FAudio_CreateMasteringVoice
+#define IXAudio27_CreateSourceVoice FAudio_CreateSourceVoice
+
+#define IXAudio2_StopEngine FAudio_StopEngine
+#define IXAudio2_RegisterForCallbacks FAudio_RegisterForCallbacks
+#define IXAudio2_CreateMasteringVoice FAudio_CreateMasteringVoice
+
+#define IXAudio2MasteringVoice_GetChannelMask FAudioMasteringVoice_GetChannelMask
+
 #define XAUDIO2_ANY_PROCESSOR FAUDIO_DEFAULT_PROCESSOR
+
+#define WAVE_FORMAT_IEEE_FLOAT FAUDIO_FORMAT_IEEE_FLOAT
+
 #define GlobalDefaultDevice FAudioGlobalDefaultDevice
 #define NotDefaultDevice FAudioNotDefaultDevice
+#define AudioCategory_GameEffects FAudioStreamCategory_GameEffects
