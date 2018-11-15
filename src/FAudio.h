@@ -774,6 +774,19 @@ FAUDIOAPI uint32_t FAudioCOMConstructWithCustomAllocatorEXT(
 	FAudioReallocFunc customRealloc
 );
 
+/* FAudio Engine Procedure API
+ * See "extensions/EngineProcedureEXT.txt" for more information.
+ */
+typedef void (FAUDIOCALL *FAudioEngineCall)(FAudio *audio, float *output);
+typedef void (FAUDIOCALL *FAudioEngineProcedure)(FAudioEngineCall defaultEngineProc, FAudio *audio, float *output, void *user);
+
+FAUDIOAPI void FAudio_SetEngineProcedure(
+	FAudio *audio,
+	FAudioEngineProcedure clientEngineProc,
+	void *user
+);
+
+
 /* FAudio I/O API */
 
 #define FAUDIO_SEEK_SET 0

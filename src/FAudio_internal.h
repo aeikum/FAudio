@@ -273,6 +273,9 @@ struct FAudio
 	FAudioMallocFunc pMalloc;
 	FAudioFreeFunc pFree;
 	FAudioReallocFunc pRealloc;
+
+	void *clientEngineUser;
+	FAudioEngineProcedure pClientEngineProc;
 };
 
 struct FAudioVoice
