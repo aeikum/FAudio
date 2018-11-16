@@ -275,7 +275,7 @@ struct FAudio
 	FAudioReallocFunc pRealloc;
 
 	void *clientEngineUser;
-	FAudioEngineProcedure pClientEngineProc;
+	FAudioEngineProcedureEXT pClientEngineProc;
 };
 
 struct FAudioVoice

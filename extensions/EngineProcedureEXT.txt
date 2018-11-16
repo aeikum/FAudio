@@ -5,18 +5,23 @@ About
 Clients may be interested in having more control over the engine procedure. In
 particular, they may want to modify or access the generated output before
 passing it to the underlying platform. Some clients, like Wine, may have
-thread requirements that SDL's threading API cannot satisfy. This extension
-allows clients to "wrap" the engine procedure with arbitrary code.
+thread requirements that the platform's audio library cannot satisfy. This
+extension allows clients to "wrap" the engine procedure with arbitrary code.
 
 New Types
 ---------
-typedef void (FAUDIOCALL *FAudioEngineCall)(FAudio *audio, float *output);
+typedef void (FAUDIOCALL *FAudioEngineCallEXT)(FAudio *audio, float *output);
 
-typedef void (FAUDIOCALL *FAudioEngineProcedure)(FAudioEngineCall defaultEngineProc, FAudio *audio, float *output, void *user);
+typedef void (FAUDIOCALL *FAudioEngineProcedureEXT)(
+	FAudioEngineCallEXT defaultEngineProc,
+	FAudio *audio,
+	float *output,
+	void *user
+);
 
 New Procedures and Functions
 ----------------------------
-FAUDIOAPI void FAudio_SetEngineProcedure(
+FAUDIOAPI void FAudio_SetEngineProcedureEXT(
 	FAudio *audio,
 	FAudioEngineProcedure clientEngineProc,
 	void *user

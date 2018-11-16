@@ -777,12 +777,17 @@ FAUDIOAPI uint32_t FAudioCOMConstructWithCustomAllocatorEXT(
 /* FAudio Engine Procedure API
  * See "extensions/EngineProcedureEXT.txt" for more information.
  */
-typedef void (FAUDIOCALL *FAudioEngineCall)(FAudio *audio, float *output);
-typedef void (FAUDIOCALL *FAudioEngineProcedure)(FAudioEngineCall defaultEngineProc, FAudio *audio, float *output, void *user);
-
-FAUDIOAPI void FAudio_SetEngineProcedure(
+typedef void (FAUDIOCALL *FAudioEngineCallEXT)(FAudio *audio, float *output);
+typedef void (FAUDIOCALL *FAudioEngineProcedureEXT)(
+	FAudioEngineCallEXT defaultEngineProc,
 	FAudio *audio,
-	FAudioEngineProcedure clientEngineProc,
+	float *output,
+	void *user
+);
+
+FAUDIOAPI void FAudio_SetEngineProcedureEXT(
+	FAudio *audio,
+	FAudioEngineProcedureEXT clientEngineProc,
 	void *user
 );
 
