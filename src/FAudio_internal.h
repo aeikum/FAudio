@@ -278,6 +278,9 @@ struct FAudio
 
 	void *clientEngineUser;
 	FAudioEngineProcedureEXT pClientEngineProc;
+
+	/* Platform opaque pointer */
+	void *platform;
 };
 
 struct FAudioVoice
