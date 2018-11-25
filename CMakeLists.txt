@@ -161,15 +161,15 @@ install(
 	FILES ${CMAKE_CURRENT_BINARY_DIR}/generated/${PROJECT_NAME}-config.cmake
 	DESTINATION lib/cmake/${PROJECT_NAME})
 
-# TODO: install only needed public headers
-#install(
-#	DIRECTORY include/
-#	DESTINATION include)
+# install public header file
+install(
+	FILES src/FAudio.h
+	DESTINATION include)
 
 install(
 	TARGETS ${PROJECT_NAME}
 	EXPORT ${PROJECT_NAME}-targets
-	#INCLUDES DESTINATION include
+	INCLUDES DESTINATION include
 	RUNTIME DESTINATION bin
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib/static)
