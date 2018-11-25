@@ -39,7 +39,8 @@ add_library(FAudio SHARED
 	src/FAudio_platform_sdl2.c
 )
 # include directory for other targets to consume
-target_include_directories(FAudio INTERFACE src)
+target_include_directories(FAudio INTERFACE
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
 
 # FFmpeg Support
 if(FFMPEG)
@@ -146,3 +147,34 @@ endif()
 # TODO: cpp/ COM Wrapper if MinGW
 
 # TODO: cpp/ Wine DLL if Linux
+
+
+# install FAudio target and generate cmake-config file
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file(
+	cmake/config.cmake.in
+	${CMAKE_CURRENT_BINARY_DIR}/generated/${PROJECT_NAME}-config.cmake
+	INSTALL_DESTINATION lib/cmake/${PROJECT_NAME})
+
+install(
+	FILES ${CMAKE_CURRENT_BINARY_DIR}/generated/${PROJECT_NAME}-config.cmake
+	DESTINATION lib/cmake/${PROJECT_NAME})
+
+# TODO: install only needed public headers
+#install(
+#	DIRECTORY include/
+#	DESTINATION include)
+
+install(
+	TARGETS ${PROJECT_NAME}
+	EXPORT ${PROJECT_NAME}-targets
+	#INCLUDES DESTINATION include
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib/static)
+
+install(
+	EXPORT ${PROJECT_NAME}-targets
+	NAMESPACE ${PROJECT_NAME}::
+	DESTINATION lib/cmake/${PROJECT_NAME})
