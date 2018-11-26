@@ -21,6 +21,21 @@ endif()
 
 # Source lists
 add_library(FAudio SHARED
+	# public header
+	include/FAPOFX.h
+	include/FACT.h
+	include/FAPOBase.h
+	include/FAudio.h
+	include/FACT3D.h
+	include/F3DAudio.h
+	include/FAPO.h
+	include/FAudioFX.h
+	# internal header
+	src/FACT_internal.h
+	src/FAudio_internal.h
+	src/stb.h
+	src/stb_vorbis.h
+	# source files
 	src/F3DAudio.c
 	src/FAudio.c
 	src/FAudio_internal.c
