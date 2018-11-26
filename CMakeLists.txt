@@ -8,6 +8,16 @@ option(BUILD_UTILS "Build utils/ folder" OFF)
 option(BUILD_CPP "Build cpp/ folder (COM for Win32, Wine for Unix)" OFF)
 option(XNASONG "Build with XNA_Song.c" ON)
 
+# set build type to Release if none is specified
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+	message(STATUS "Setting build type to 'Release' as none was specified.")
+	set(CMAKE_BUILD_TYPE "Release" CACHE
+		STRING "Choose the type of build." FORCE)
+	# Set the possible values of build type for cmake-gui
+	set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+		"Debug" "Release" "RelWithDebInfo")
+endif()
+
 # set custom module path for findFFmpeg
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
