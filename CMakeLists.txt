@@ -39,8 +39,9 @@ add_library(FAudio SHARED
 	src/FAudio_platform_sdl2.c
 )
 # include directory for other targets to consume
-target_include_directories(FAudio INTERFACE
-	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
+target_include_directories(FAudio PUBLIC
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
 # FFmpeg Support
 if(FFMPEG)
@@ -163,7 +164,7 @@ install(
 
 # install public header file
 install(
-	FILES src/FAudio.h
+	DIRECTORY include/
 	DESTINATION include)
 
 install(
